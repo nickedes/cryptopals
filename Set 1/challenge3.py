@@ -1,8 +1,5 @@
 # http://cryptopals.com/sets/1/challenges/3
 
-# hex encoded string
-hexencoded = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-
 freqtable = {"E": "12.02",
              "T": "9.10",
              "A": "8.12",
@@ -32,30 +29,32 @@ freqtable = {"E": "12.02",
              }
 
 
-def getScore(plain, freqtable):
+def getScore(plain):
     score = 0
     for char in plain:
         if not char.isalpha():
             # penalty
-            score -= 15
+            score -= 5
         elif char.isalpha() and char.upper() in freqtable:
             score += float(freqtable[char.upper()])
     return score
 
-dec_str = bytes.fromhex(hexencoded)
+if __name__ == '__main__':
+    # hex encoded string
+    hexencoded = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
 
-strings = []
-for i in range(97, 97+26):
-    plain = ''
-    for x in dec_str:
-        plain += chr(x ^ i)
-    score = getScore(plain, freqtable)
-    strings.append((plain, score))
+    dec_str = bytes.fromhex(hexencoded)
 
-# cOOKINGmcSLIKEAPOUNDOFBACON
-sorted_byscore = sorted(strings, key=lambda x: x[1], reverse=True)
+    strings = []
+    for i in range(256):
+        plain = ''
+        for x in dec_str:
+            plain += chr(x ^ i)
+        score = getScore(plain)
+        strings.append((plain, score))
 
-print(sorted_byscore)
+    # cOOKINGmcSLIKEAPOUNDOFBACON
+    sorted_byscore = sorted(strings, key=lambda x: x[1], reverse=True)
 
-# 1st string!
-print(sorted_byscore[0][0])
+    for x in sorted_byscore[:5]:
+        print(x[0], "Score: ",x[1])
