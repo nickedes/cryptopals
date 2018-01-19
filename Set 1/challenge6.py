@@ -88,4 +88,4 @@ if __name__ == "__main__":
 
     b64decode = b.b64decode(data)
     result = break_repeating_xor(b64decode)
-    print(result[0])
+    print("Text :", result[0], "Key :", bytes.decode(result[1]))
