@@ -3,27 +3,9 @@ from challenge3 import getScore
 from itertools import combinations
 
 
-def tobits(s):
-    result = []
-    for c in s:
-        bits = bin(ord(c))[2:]
-        bits = '00000000'[len(bits):] + bits
-        result.extend([int(b) for b in bits])
-    return result
-
-
 def hamming_distance(s1, s2):
     """Calculate the Hamming distance between two bit strings"""
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
-
-
-def full_ham_dist(data, keysize):
-    total_hamdist = 0
-    for i in range(len(data)//keysize):
-        total_hamdist += hamming_distance(tobits(data[i*keysize: (i+1)*keysize]),
-                                          tobits(data[(i+1)*keysize: (i+2)*keysize]))
-    total_hamdist /= keysize
-    return total_hamdist
 
 
 def repeating_key_xor(plaintext, key):
@@ -34,9 +16,7 @@ def repeating_key_xor(plaintext, key):
     for byte in plaintext:
         ciphertext += chr(byte ^ key[i])
 
-        # Cycle i to point to the next byte of the key
-        i = i + 1 if i < len(key) - 1 else 0
-
+        i = (i + 1) % len(key)
     return ciphertext
 
 
