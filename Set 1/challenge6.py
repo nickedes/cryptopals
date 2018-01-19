@@ -1,19 +1,6 @@
 import base64 as b
 from challenge3 import getScore
-
-
-def single_char_xor(lines):
-    best_score = -1000
-    dec_str = lines
-    for i in range(256):
-        plain = ''
-        for x in dec_str:
-            plain += chr(ord(x) ^ i)
-        score = getScore(plain)
-        if score > best_score:
-            best_score = score
-            key = i
-    return key
+from itertools import combinations
 
 
 def tobits(s):
@@ -25,7 +12,7 @@ def tobits(s):
     return result
 
 
-def hamming2(s1, s2):
+def hamming_distance(s1, s2):
     """Calculate the Hamming distance between two bit strings"""
     return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
@@ -33,11 +20,86 @@ def hamming2(s1, s2):
 def full_ham_dist(data, keysize):
     total_hamdist = 0
     for i in range(len(data)//keysize):
-        total_hamdist += hamming2(tobits(data[i*keysize: (i+1)*keysize]),
-                                  tobits(data[(i+1)*keysize: (i+2)*keysize]))
+        total_hamdist += hamming_distance(tobits(data[i*keysize: (i+1)*keysize]),
+                                          tobits(data[(i+1)*keysize: (i+2)*keysize]))
     total_hamdist /= keysize
     return total_hamdist
 
+
+def repeating_key_xor(plaintext, key):
+    """Implements the repeating-key XOR encryption."""
+    ciphertext = ''
+    i = 0
+
+    for byte in plaintext:
+        ciphertext += chr(byte ^ key[i])
+
+        # Cycle i to point to the next byte of the key
+        i = i + 1 if i < len(key) - 1 else 0
+
+    return ciphertext
+
+
+def singlechar_xor(block):
+    possiblekeys = []
+    for keysize in range(256):
+        plain = b''
+        text = ''
+        for x in block:
+            plain += bytes(x ^ keysize)
+            text += chr(x ^ keysize)
+        score = getScore(text)
+        result = {
+            'key': keysize,
+            'score': score,
+            'plaintext': plain
+        }
+        possiblekeys.append(result)
+
+    # Return the candidate with the highest English score
+    # print(sorted(possiblekeys, key=lambda x: x['score'], reverse=True)[0])
+    return sorted(possiblekeys, key=lambda x: x['score'], reverse=True)[0]
+
+
+def break_repeating_xor(data):
+    """
+    input : b64 decoded data
+    Breaks the repeating key XOR
+    """
+    # save all the normalized distances
+    dists = {}
+
+    for keylen in range(2, 80):
+        chunks = [data[i:i + keylen] for i in range(0, len(data), keylen)][:4]
+        # Sum the hamming distances between each pair of chunks
+        distance = 0
+        pairs = combinations(chunks, 2)
+        for (x, y) in pairs:
+            distance += hamming_distance(x, y)
+        distance /= 6
+        dists[keylen] = distance/keylen
+
+    possible_key_sizes = sorted(dists, key=dists.get)[:3]
+    possible_plaintexts = []
+    for d in possible_key_sizes:
+        key = b''
+
+        # Break the ciphertext into blocks of key_size length
+        for i in range(d):
+            block = b''
+
+            # Transpose the blocks: make a block that is the i-th byte of every
+            # block
+            for j in range(i, len(data), d):
+                block += bytes([data[j]])
+
+            # Solve each block as if it was single-character XOR
+            key += bytes([singlechar_xor(block)['key']])
+
+        # Store the candidate plaintext that we would get with the key that we
+        # just found
+        possible_plaintexts.append((repeating_key_xor(data, key), key))
+    return max(possible_plaintexts, key=lambda k: getScore(k[0]))
 
 if __name__ == "__main__":
 
@@ -45,31 +107,5 @@ if __name__ == "__main__":
         data = f.read()
 
     b64decode = b.b64decode(data)
-    # print(b64decode)
-    text = ""
-    for x in b64decode:
-        text += chr(x)
-
-    max_hamdist = 100000
-    for keysize in range(2, 40):
-        ham_dist = full_ham_dist(text, keysize)
-        if ham_dist < max_hamdist:
-            max_hamdist = ham_dist
-            keylen = keysize
-
-    # print(max_hamdist, keylen)
-    # Now that you probably know the KEYSIZE: break the ciphertext into blocks
-    # of KEYSIZE length.Now transpose the blocks: make a block that is the
-    # first byte of every block, and a block that is the second byte of every
-    # block, and so on.
-    blocks = [text[i::keylen] for i in range(keylen)]
-    key = ""
-    for block in blocks:
-        key += chr(single_char_xor(block))
-    print(key)
-
-    plain = ''
-    for i in range(len(text)):
-        plain += chr(ord(text[i]) ^ ord(key[i % len(key)]))
-
-    print(plain)
+    result = break_repeating_xor(b64decode)
+    print(result[0])

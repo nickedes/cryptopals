@@ -26,10 +26,10 @@ if __name__ == '__main__':
         for x in dec_str:
             plain += chr(x ^ i)
         score = getScore(plain)
-        strings.append((plain, score))
+        strings.append((plain, score, i))
 
     # cOOKINGmcSLIKEAPOUNDOFBACON
     sorted_byscore = sorted(strings, key=lambda x: x[1], reverse=True)
 
     for x in sorted_byscore[:5]:
-        print(x[0], "Score: ",x[1])
+        print(x[0], "Score: ", x[1])
