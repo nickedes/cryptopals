@@ -5,15 +5,15 @@ def single_char_xor(lines):
     strings = []
     for line in lines:
         dec_str = bytes.fromhex(line)
-        for i in range(256):
+        for key in range(256):
             plain = ''
             for x in dec_str:
-                plain += chr(x ^ i)
+                plain += chr(x ^ key)
             score = getScore(plain)
-            strings.append((plain, score))
+            strings.append((plain, score, key))
 
-    sorted_byscore = sorted(strings, key=lambda x: x[1], reverse=True)
-    return sorted_byscore
+    result = sorted(strings, key=lambda x: x[1], reverse=True)[0]
+    return result
 
 
 if __name__ == '__main__':
@@ -21,8 +21,5 @@ if __name__ == '__main__':
         data = f.read()
 
     lines = data.split('\n')
-    sorted_byscore = single_char_xor(lines)
-
-    # print(sorted_byscore[:5])
-    for x in sorted_byscore[:5]:
-        print(x[0], "Score : ", x[1])
+    result = single_char_xor(lines)
+    print("Text :", result[0], "\nKey :", chr(result[2]))
