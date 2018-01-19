@@ -8,19 +8,19 @@ required = "746865206b696420646f6e277420706c6179"
 dec_str1 = bytes.fromhex(string1)
 dec_str2 = bytes.fromhex(string2)
 
-# print(dec_str1, dec_str2)
-
 xor_string = ''
 
 # Xor
 for x in range(len(dec_str1)):
-    # print(dec_str1[x], dec_str2[x])
+    # xor b/w both strings
     xor_string += chr(dec_str1[x] ^ dec_str2[x])
 
 # Encoding string
-encoded_xor_string = xor_string.encode('ascii')
+encoded_xor_string = xor_string.encode()
 
 hex_encode = encoded_xor_string.hex()
 
 if hex_encode == required:
     print("DONE!")
+else:
+    print("Incomplete!")
