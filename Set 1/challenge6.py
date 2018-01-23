@@ -49,7 +49,7 @@ def break_repeating_xor(data):
     # save all the normalized distances
     dists = {}
 
-    for keylen in range(2, 80):
+    for keylen in range(2, 40):
         chunks = [data[i:i + keylen] for i in range(0, len(data), keylen)][:4]
         # Sum the hamming distances between each pair of chunks
         distance = 0
